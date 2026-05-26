@@ -1,0 +1,1996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ViceMap — The GTA 6 Community Discovery Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pink:       #FF1E6F;
+  --pink2:      #FF6BA8;
+  --pink-glow:  rgba(255,30,111,0.35);
+  --cyan:       #00F5E4;
+  --cyan2:      #7FFFF8;
+  --cyan-glow:  rgba(0,245,228,0.25);
+  --orange:     #FF8C42;
+  --gold:       #FFD166;
+  --purple:     #9B5DE5;
+  --bg:         #06080F;
+  --bg2:        #090C18;
+  --bg3:        #0D1020;
+  --bg4:        #111428;
+  --surface:    #141729;
+  --surface2:   #1A1E35;
+  --text:       #F0F2FF;
+  --muted:      #6B718F;
+  --border-p:   rgba(255,30,111,0.22);
+  --border-c:   rgba(0,245,228,0.18);
+  --border-w:   rgba(255,255,255,0.07);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+html{scroll-behavior:smooth;}
+
+body{
+  font-family:'Rajdhani',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  cursor:default;
+}
+
+/* ── ANIMATED RETRO GRID BACKGROUND ── */
+.retro-grid{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  perspective:600px;
+  pointer-events:none;
+  overflow:hidden;
+}
+.grid-plane{
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:60vh;
+  background-image:
+    linear-gradient(rgba(255,30,111,0.18) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,30,111,0.18) 1px,transparent 1px);
+  background-size:60px 60px;
+  transform:rotateX(75deg);
+  transform-origin:bottom center;
+  animation:gridScroll 6s linear infinite;
+}
+@keyframes gridScroll{
+  from{background-position:0 0;}
+  to{background-position:0 60px;}
+}
+.grid-fade{
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:62vh;
+  background:linear-gradient(to bottom,var(--bg) 0%,transparent 40%,var(--bg) 100%);
+}
+
+/* SCANLINES */
+body::after{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.06) 3px,rgba(0,0,0,0.06) 4px);
+  pointer-events:none;
+  z-index:1;
+}
+
+/* NOISE TEXTURE */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  opacity:0.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:1;
+}
+
+.app{position:relative;z-index:2;}
+
+/* ── HEADER ── */
+header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(6,8,15,0.92);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border-p);
+  padding:0 40px;
+  height:60px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+
+.logo{
+  display:flex;align-items:center;gap:12px;
+  text-decoration:none;
+}
+
+.logo-mark{
+  width:36px;height:36px;
+  position:relative;
+  flex-shrink:0;
+}
+
+.logo-diamond{
+  position:absolute;inset:0;
+  border:1.5px solid var(--pink);
+  transform:rotate(45deg);
+  border-radius:3px;
+}
+
+.logo-diamond::before{
+  content:'';
+  position:absolute;inset:4px;
+  border:1px solid var(--cyan);
+  border-radius:2px;
+}
+
+.logo-dot{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:6px;height:6px;
+  background:var(--pink);
+  border-radius:50%;
+  box-shadow:0 0 8px var(--pink);
+  animation:logoPulse 2s ease-in-out infinite;
+}
+
+@keyframes logoPulse{
+  0%,100%{box-shadow:0 0 8px var(--pink);}
+  50%{box-shadow:0 0 16px var(--pink),0 0 32px var(--pink-glow);}
+}
+
+.logo-text-wrap{display:flex;flex-direction:column;line-height:1;}
+
+.logo-name{
+  font-family:'Orbitron',sans-serif;
+  font-size:18px;
+  font-weight:700;
+  letter-spacing:3px;
+  background:linear-gradient(90deg,var(--pink),var(--cyan));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+.logo-tagline{
+  font-family:'Rajdhani',sans-serif;
+  font-size:9px;
+  letter-spacing:2.5px;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-top:1px;
+}
+
+nav{display:flex;align-items:center;gap:4px;}
+
+.nav-link{
+  font-family:'Rajdhani',sans-serif;
+  font-size:13px;
+  font-weight:600;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:6px 14px;
+  border-radius:3px;
+  border:none;
+  cursor:pointer;
+  background:none;
+  color:var(--muted);
+  transition:all 0.2s;
+}
+.nav-link:hover{color:var(--text);}
+.nav-link.active{color:var(--cyan);}
+
+.nav-pin-btn{
+  font-family:'Orbitron',sans-serif;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:8px 18px;
+  border-radius:3px;
+  border:1px solid var(--pink);
+  cursor:pointer;
+  background:var(--pink-glow);
+  color:var(--pink);
+  margin-left:8px;
+  transition:all 0.2s;
+  position:relative;
+  overflow:hidden;
+}
+.nav-pin-btn::before{
+  content:'';position:absolute;
+  top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,30,111,0.2),transparent);
+  transition:left 0.4s;
+}
+.nav-pin-btn:hover::before{left:100%;}
+.nav-pin-btn:hover{
+  background:rgba(255,30,111,0.25);
+  box-shadow:0 0 20px var(--pink-glow);
+}
+
+/* ── HERO ── */
+.hero{
+  position:relative;
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;
+  padding:100px 40px 80px;
+  overflow:hidden;
+}
+
+/* Sunset glow orb */
+.hero-orb{
+  position:absolute;
+  top:55%;left:50%;
+  transform:translate(-50%,-50%);
+  width:700px;height:700px;
+  border-radius:50%;
+  background:radial-gradient(circle,
+    rgba(255,30,111,0.12) 0%,
+    rgba(255,140,66,0.06) 30%,
+    transparent 70%
+  );
+  pointer-events:none;
+  animation:orbPulse 4s ease-in-out infinite;
+}
+@keyframes orbPulse{
+  0%,100%{transform:translate(-50%,-50%) scale(1);}
+  50%{transform:translate(-50%,-50%) scale(1.05);}
+}
+
+.hero-orb2{
+  position:absolute;
+  top:40%;left:30%;
+  width:400px;height:400px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(0,245,228,0.07) 0%,transparent 70%);
+  pointer-events:none;
+}
+
+/* Retro sun */
+.retro-sun{
+  position:absolute;
+  bottom:-20px;left:50%;
+  transform:translateX(-50%);
+  width:380px;height:190px;
+  overflow:hidden;
+  pointer-events:none;
+}
+.sun-circle{
+  width:380px;height:380px;
+  border-radius:50%;
+  background:linear-gradient(180deg,
+    var(--pink) 0%,
+    var(--orange) 35%,
+    var(--gold) 60%,
+    rgba(255,209,102,0.3) 80%,
+    transparent 100%
+  );
+  position:relative;
+  opacity:0.22;
+}
+.sun-lines{
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background:repeating-linear-gradient(
+    180deg,
+    transparent,
+    transparent 14px,
+    rgba(6,8,15,0.9) 14px,
+    rgba(6,8,15,0.9) 18px
+  );
+}
+
+/* Palm trees */
+.palms{
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:260px;
+  pointer-events:none;
+  opacity:0.28;
+}
+
+/* Floating particles */
+.particle{
+  position:absolute;
+  border-radius:50%;
+  pointer-events:none;
+  animation:float linear infinite;
+}
+@keyframes float{
+  0%{transform:translateY(0) rotate(0deg);opacity:0;}
+  10%{opacity:1;}
+  90%{opacity:1;}
+  100%{transform:translateY(-100vh) rotate(360deg);opacity:0;}
+}
+
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:'Rajdhani',sans-serif;
+  font-size:12px;font-weight:600;
+  letter-spacing:3px;text-transform:uppercase;
+  color:var(--cyan);
+  border:1px solid var(--border-c);
+  background:rgba(0,245,228,0.06);
+  padding:6px 16px;border-radius:2px;
+  margin-bottom:28px;
+  animation:fadeUp 0.7s ease both;
+}
+
+.eyebrow-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--cyan);
+  box-shadow:0 0 6px var(--cyan);
+  animation:logoPulse 1.5s ease-in-out infinite;
+}
+
+.hero-logo-giant{
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(64px,14vw,140px);
+  font-weight:900;
+  letter-spacing:8px;
+  line-height:0.9;
+  margin-bottom:12px;
+  animation:fadeUp 0.7s 0.1s ease both;
+  position:relative;
+}
+
+.hero-v{
+  display:inline-block;
+  background:linear-gradient(135deg,var(--pink2),var(--pink));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  filter:drop-shadow(0 0 30px var(--pink-glow));
+}
+.hero-i{
+  display:inline-block;
+  background:linear-gradient(135deg,#fff,#ccc);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.hero-ce{
+  display:inline-block;
+  background:linear-gradient(135deg,var(--pink2),var(--pink));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  filter:drop-shadow(0 0 30px var(--pink-glow));
+}
+.hero-map{
+  display:block;
+  background:linear-gradient(135deg,var(--cyan),var(--cyan2));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  filter:drop-shadow(0 0 30px var(--cyan-glow));
+  letter-spacing:18px;
+  font-size:clamp(32px,7vw,72px);
+  margin-top:4px;
+}
+
+.hero-sub{
+  font-family:'Rajdhani',sans-serif;
+  font-size:17px;font-weight:500;
+  letter-spacing:4px;text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:40px;
+  animation:fadeUp 0.7s 0.2s ease both;
+}
+
+/* Art deco HR */
+.deco-hr{
+  display:flex;align-items:center;gap:12px;
+  margin:0 auto 32px;
+  width:100%;max-width:400px;
+  animation:fadeUp 0.7s 0.25s ease both;
+}
+.deco-hr-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--pink),transparent);}
+.deco-hr-diamond{
+  width:8px;height:8px;
+  border:1px solid var(--pink);
+  transform:rotate(45deg);
+  box-shadow:0 0 8px var(--pink-glow);
+}
+.deco-hr-sm{
+  width:4px;height:4px;
+  border:1px solid var(--border-p);
+  transform:rotate(45deg);
+}
+
+.hero-desc{
+  font-size:17px;font-weight:400;
+  color:var(--muted);line-height:1.7;
+  max-width:560px;margin:0 auto 44px;
+  animation:fadeUp 0.7s 0.3s ease both;
+}
+.hero-desc strong{color:var(--text);font-weight:600;}
+
+.hero-btns{
+  display:flex;gap:16px;justify-content:center;
+  animation:fadeUp 0.7s 0.4s ease both;
+  margin-bottom:60px;
+}
+
+.btn-gta{
+  font-family:'Orbitron',sans-serif;
+  font-size:12px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;
+  padding:16px 36px;border-radius:3px;
+  border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--pink),#C4005A);
+  color:white;
+  transition:all 0.2s;
+  position:relative;overflow:hidden;
+}
+.btn-gta::before{
+  content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);
+  transition:left 0.5s;
+}
+.btn-gta:hover::before{left:100%;}
+.btn-gta:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 40px rgba(255,30,111,0.5);
+}
+
+.btn-outline{
+  font-family:'Orbitron',sans-serif;
+  font-size:12px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;
+  padding:16px 36px;border-radius:3px;
+  border:1px solid var(--border-c);
+  cursor:pointer;
+  background:rgba(0,245,228,0.06);
+  color:var(--cyan);
+  transition:all 0.2s;
+}
+.btn-outline:hover{
+  background:rgba(0,245,228,0.14);
+  box-shadow:0 0 24px var(--cyan-glow);
+  transform:translateY(-2px);
+}
+
+/* Countdown */
+.countdown-wrap{
+  animation:fadeUp 0.7s 0.5s ease both;
+}
+
+.countdown-label{
+  font-family:'Rajdhani',sans-serif;
+  font-size:11px;font-weight:600;
+  letter-spacing:3px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:12px;
+}
+
+.countdown{display:flex;gap:8px;align-items:center;justify-content:center;}
+
+.cd-block{
+  background:var(--surface);
+  border:1px solid var(--border-p);
+  border-radius:4px;
+  padding:12px 18px;
+  text-align:center;
+  min-width:72px;
+  position:relative;
+  overflow:hidden;
+}
+.cd-block::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--pink),transparent);
+}
+
+.cd-num{
+  font-family:'Orbitron',sans-serif;
+  font-size:30px;font-weight:700;
+  color:var(--pink);line-height:1;
+  text-shadow:0 0 20px var(--pink-glow);
+}
+.cd-unit{
+  font-family:'Rajdhani',sans-serif;
+  font-size:9px;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);margin-top:2px;
+}
+.cd-sep{
+  font-family:'Orbitron',sans-serif;
+  font-size:28px;color:var(--border-p);
+  margin-bottom:14px;
+}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+/* ── TICKER ── */
+.ticker{
+  background:var(--bg2);
+  border-top:1px solid var(--border-p);
+  border-bottom:1px solid var(--border-c);
+  padding:10px 0;
+  overflow:hidden;
+  white-space:nowrap;
+}
+.ticker-inner{
+  display:inline-flex;gap:60px;
+  animation:ticker 20s linear infinite;
+}
+.ticker-item{
+  font-family:'Rajdhani',sans-serif;
+  font-size:12px;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);
+  display:flex;align-items:center;gap:12px;
+}
+.ticker-item .dot{
+  width:4px;height:4px;border-radius:50%;
+  background:var(--pink);box-shadow:0 0 6px var(--pink);
+}
+@keyframes ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+/* ── STATS ── */
+.stats-section{
+  padding:48px 40px;
+  display:flex;justify-content:center;
+  gap:0;
+  max-width:1100px;margin:0 auto;
+}
+
+.stat-card{
+  flex:1;max-width:220px;
+  text-align:center;padding:0 28px;
+  position:relative;
+}
+.stat-card:not(:last-child)::after{
+  content:'';position:absolute;right:0;top:15%;bottom:15%;
+  width:1px;background:var(--border-c);
+}
+
+.stat-num{
+  font-family:'Orbitron',sans-serif;
+  font-size:38px;font-weight:700;line-height:1;
+}
+.stat-num.p{color:var(--pink);text-shadow:0 0 20px var(--pink-glow);}
+.stat-num.c{color:var(--cyan);text-shadow:0 0 20px var(--cyan-glow);}
+.stat-num.g{color:var(--gold);}
+
+.stat-label{
+  font-family:'Rajdhani',sans-serif;
+  font-size:11px;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);margin-top:4px;
+}
+
+/* ── SECTION WRAPPER ── */
+.section{padding:80px 40px;max-width:1200px;margin:0 auto;}
+
+.eyebrow{
+  font-family:'Rajdhani',sans-serif;
+  font-size:11px;font-weight:700;
+  letter-spacing:3px;text-transform:uppercase;
+  color:var(--pink);
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:10px;
+}
+.eyebrow::before{content:'';width:20px;height:1px;background:var(--pink);}
+
+.section-title{
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(28px,4vw,48px);
+  font-weight:700;letter-spacing:2px;
+  line-height:1.1;margin-bottom:14px;
+}
+.c{color:var(--cyan);}
+.pk{color:var(--pink);}
+
+/* ── MAP SECTION ── */
+.map-wrap{
+  background:var(--bg2);
+  border-top:1px solid var(--border-c);
+  border-bottom:1px solid var(--border-p);
+  padding:70px 40px;
+}
+.map-wrap-inner{max-width:1200px;margin:0 auto;}
+
+.map-app{
+  display:grid;
+  grid-template-columns:270px 1fr;
+  border:1px solid var(--border-p);
+  border-radius:6px;
+  overflow:hidden;
+  margin-top:44px;
+  height:560px;
+  box-shadow:0 0 60px rgba(255,30,111,0.1),0 0 100px rgba(0,0,0,0.5);
+}
+
+/* Sidebar */
+.map-sb{
+  background:var(--bg3);
+  border-right:1px solid var(--border-p);
+  display:flex;flex-direction:column;
+}
+
+.sb-head{
+  padding:14px 16px;
+  border-bottom:1px solid var(--border-w);
+  display:flex;align-items:center;justify-content:space-between;
+}
+
+.sb-title{
+  font-family:'Orbitron',sans-serif;
+  font-size:10px;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);
+}
+
+.sb-count{
+  font-family:'Orbitron',sans-serif;
+  font-size:11px;color:var(--cyan);
+  font-weight:700;
+}
+
+.filter-bar{
+  display:flex;gap:4px;
+  padding:8px 10px;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+  background:var(--bg4);
+}
+
+.fpill{
+  font-family:'Rajdhani',sans-serif;
+  font-size:10px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;
+  padding:3px 8px;border-radius:2px;
+  border:1px solid rgba(255,255,255,0.07);
+  background:none;color:var(--muted);
+  cursor:pointer;transition:all 0.15s;
+}
+.fpill.fp{border-color:var(--border-p);color:var(--pink);background:rgba(255,30,111,0.08);}
+.fpill.fc{border-color:var(--border-c);color:var(--cyan);background:rgba(0,245,228,0.06);}
+
+/* Progress */
+.progress-wrap{
+  padding:8px 12px;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+}
+.prog-label{
+  display:flex;justify-content:space-between;
+  font-family:'Rajdhani',sans-serif;
+  font-size:10px;font-weight:600;
+  letter-spacing:1px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:5px;
+}
+.prog-track{height:2px;background:rgba(255,255,255,0.05);border-radius:1px;overflow:hidden;}
+.prog-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--pink),var(--cyan));
+  border-radius:1px;
+  width:0%;
+  transition:width 1.5s ease;
+}
+
+.region-list{overflow-y:auto;flex:1;}
+
+.ri{
+  padding:11px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+  cursor:pointer;transition:background 0.15s;
+  display:flex;gap:10px;align-items:flex-start;
+}
+.ri:hover{background:rgba(255,30,111,0.05);}
+.ri.active{
+  background:rgba(255,30,111,0.08);
+  border-left:2px solid var(--pink);
+}
+
+.ri-emoji{font-size:17px;flex-shrink:0;margin-top:1px;}
+
+.ri-body{flex:1;min-width:0;}
+
+.ri-name{
+  font-family:'Rajdhani',sans-serif;
+  font-size:14px;font-weight:700;
+  letter-spacing:0.5px;color:var(--text);
+  margin-bottom:2px;
+}
+.ri.active .ri-name{color:var(--pink);}
+
+.ri-sub{font-size:11px;color:var(--muted);line-height:1.3;}
+
+.ri-meta{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap;}
+
+.badge{
+  font-family:'Rajdhani',sans-serif;
+  font-size:9px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;
+  padding:1px 5px;border-radius:2px;
+}
+.badge-c{background:rgba(0,245,228,0.08);color:var(--cyan);border:1px solid rgba(0,245,228,0.2);}
+.badge-r{background:rgba(255,30,111,0.08);color:var(--pink);border:1px solid rgba(255,30,111,0.2);}
+.badge-l{background:rgba(255,255,255,0.04);color:var(--muted);border:1px solid rgba(255,255,255,0.07);}
+.badge-pins{background:rgba(255,255,255,0.04);color:var(--muted);border:1px solid rgba(255,255,255,0.06);}
+
+/* Map canvas */
+.map-canvas{
+  position:relative;
+  background:#060914;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+
+.map-hdr{
+  padding:8px 16px;
+  border-bottom:1px solid rgba(0,245,228,0.07);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+  background:rgba(6,9,20,0.8);
+}
+
+.map-hdr-l{
+  font-family:'Orbitron',sans-serif;
+  font-size:9px;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;
+  color:rgba(0,245,228,0.35);
+}
+
+.legend{display:flex;gap:14px;}
+.leg-item{
+  display:flex;align-items:center;gap:5px;
+  font-family:'Rajdhani',sans-serif;
+  font-size:10px;font-weight:600;
+  letter-spacing:1px;text-transform:uppercase;
+}
+.leg-dot{width:7px;height:7px;border-radius:50%;border:2px solid;}
+.leg-dot.p{background:var(--pink);border-color:var(--pink);}
+.leg-dot.c{background:var(--cyan);border-color:var(--cyan);}
+.leg-dot.g{background:#333;border-color:#555;}
+
+.map-body{flex:1;position:relative;overflow:hidden;}
+
+.map-grid-bg{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(0,245,228,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,245,228,0.03) 1px,transparent 1px);
+  background-size:50px 50px;
+}
+
+.map-svg-wrap{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* Map info bar */
+.map-info-bar{
+  flex-shrink:0;
+  border-top:1px solid var(--border-p);
+  padding:14px 20px;
+  background:var(--bg3);
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:16px;align-items:center;
+}
+
+.mi-name{
+  font-family:'Orbitron',sans-serif;
+  font-size:18px;font-weight:700;
+  letter-spacing:2px;
+  color:var(--cyan);
+  margin-bottom:4px;
+  text-shadow:0 0 16px var(--cyan-glow);
+}
+
+.mi-desc{font-size:12px;color:var(--muted);line-height:1.5;max-width:420px;}
+
+.mi-stats{display:flex;gap:10px;}
+
+.mi-stat{
+  background:var(--surface2);
+  border:1px solid rgba(255,255,255,0.05);
+  border-radius:4px;
+  padding:8px 14px;
+  text-align:center;min-width:70px;
+}
+.mi-stat-num{
+  font-family:'Orbitron',sans-serif;
+  font-size:18px;font-weight:700;
+  color:var(--pink);line-height:1;
+}
+.mi-stat-lbl{
+  font-family:'Rajdhani',sans-serif;
+  font-size:9px;font-weight:600;
+  letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--muted);
+}
+
+/* ── FEATURES ── */
+.feat-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:1px;
+  margin-top:48px;
+  border:1px solid var(--border-w);
+  border-radius:6px;
+  overflow:hidden;
+}
+
+.feat-card{
+  background:var(--bg3);
+  padding:32px 28px;
+  position:relative;
+  overflow:hidden;
+  transition:background 0.2s;
+}
+.feat-card::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--pink),transparent);
+  opacity:0;transition:opacity 0.25s;
+}
+.feat-card:hover{background:var(--bg4);}
+.feat-card:hover::before{opacity:1;}
+
+.feat-num{
+  font-family:'Orbitron',sans-serif;
+  font-size:11px;font-weight:700;
+  letter-spacing:2px;color:var(--border-p);
+  margin-bottom:16px;
+}
+.feat-icon{font-size:30px;margin-bottom:12px;display:block;}
+.feat-title{
+  font-family:'Rajdhani',sans-serif;
+  font-size:20px;font-weight:700;
+  letter-spacing:1px;color:var(--text);
+  margin-bottom:10px;
+}
+.feat-desc{font-size:13px;color:var(--muted);line-height:1.6;}
+
+/* ── SCOUT CARD ── */
+.sc-section{
+  background:var(--bg2);
+  border-top:1px solid var(--border-c);
+  border-bottom:1px solid var(--border-p);
+  padding:80px 40px;
+}
+.sc-inner{max-width:1200px;margin:0 auto;}
+
+.sc-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:60px;align-items:center;
+  margin-top:48px;
+}
+
+/* The actual scout card */
+.scout-card{
+  position:relative;
+  background:linear-gradient(135deg,#0A0318,#100826,#07111E);
+  border:1px solid var(--border-p);
+  border-radius:8px;
+  padding:32px;
+  box-shadow:
+    0 0 0 1px rgba(0,245,228,0.06),
+    0 0 60px rgba(255,30,111,0.15),
+    0 0 120px rgba(0,0,0,0.6);
+  overflow:hidden;
+}
+
+.sc-bg-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,30,111,0.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,30,111,0.04) 1px,transparent 1px);
+  background-size:24px 24px;
+  pointer-events:none;
+}
+
+.sc-top-line{
+  position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--pink),var(--cyan));
+}
+
+.sc-verified{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'Rajdhani',sans-serif;
+  font-size:9px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--cyan);
+  border:1px solid var(--border-c);
+  background:rgba(0,245,228,0.06);
+  padding:3px 10px;border-radius:2px;
+  margin-bottom:18px;
+}
+
+.sc-handle{
+  font-family:'Orbitron',sans-serif;
+  font-size:28px;font-weight:900;
+  letter-spacing:2px;
+  background:linear-gradient(90deg,var(--pink),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  margin-bottom:4px;
+}
+
+.sc-role{
+  font-family:'Rajdhani',sans-serif;
+  font-size:11px;font-weight:600;
+  letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:22px;
+}
+
+.sc-find{
+  background:rgba(0,245,228,0.05);
+  border:1px solid rgba(0,245,228,0.12);
+  border-radius:4px;padding:13px 15px;
+  margin-bottom:14px;
+}
+.sc-find-label{
+  font-family:'Rajdhani',sans-serif;
+  font-size:9px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--cyan);margin-bottom:4px;
+}
+.sc-find-name{
+  font-family:'Rajdhani',sans-serif;
+  font-size:17px;font-weight:700;
+  color:var(--text);letter-spacing:0.5px;
+}
+
+.sc-metrics{display:flex;gap:10px;margin-bottom:20px;}
+
+.sc-m{
+  flex:1;background:rgba(255,30,111,0.05);
+  border:1px solid rgba(255,30,111,0.12);
+  border-radius:4px;padding:10px;text-align:center;
+}
+.sc-m-num{
+  font-family:'Orbitron',sans-serif;
+  font-size:22px;font-weight:700;
+  color:var(--pink);line-height:1;
+}
+.sc-m-lbl{
+  font-family:'Rajdhani',sans-serif;
+  font-size:8px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--muted);
+}
+
+.sc-footer-bar{
+  display:flex;align-items:center;justify-content:space-between;
+}
+.sc-app{
+  font-family:'Orbitron',sans-serif;
+  font-size:11px;font-weight:700;
+  letter-spacing:3px;
+  color:rgba(255,255,255,0.15);
+}
+.sc-elite{
+  font-family:'Rajdhani',sans-serif;
+  font-size:11px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--gold);
+  border:1px solid rgba(255,209,102,0.3);
+  padding:2px 8px;border-radius:2px;
+}
+
+.sc-text h3{
+  font-family:'Orbitron',sans-serif;
+  font-size:28px;font-weight:700;
+  letter-spacing:1px;line-height:1.2;
+  margin-bottom:14px;
+}
+.sc-text p{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:12px;}
+.sc-text strong{color:var(--text);font-weight:600;}
+
+.check-list{list-style:none;display:flex;flex-direction:column;gap:9px;}
+.check-list li{
+  display:flex;align-items:flex-start;gap:10px;
+  font-size:13px;color:var(--muted);line-height:1.4;
+}
+.check-list li::before{
+  content:'◆';color:var(--pink);font-size:9px;margin-top:3px;flex-shrink:0;
+}
+
+/* ── PRICING ── */
+.pricing-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:16px;margin-top:48px;
+}
+
+.price-card{
+  background:var(--bg3);
+  border:1px solid var(--border-w);
+  border-radius:6px;padding:30px 22px;
+  position:relative;overflow:hidden;
+  transition:all 0.25s;
+}
+.price-card:hover{transform:translateY(-4px);}
+
+.price-card.hot{
+  border-color:var(--pink);
+  background:linear-gradient(135deg,rgba(255,30,111,0.08),var(--bg3));
+}
+.price-card.hot::after{
+  content:'MOST POPULAR';
+  position:absolute;top:-1px;left:50%;
+  transform:translateX(-50%);
+  font-family:'Orbitron',sans-serif;
+  font-size:8px;font-weight:700;letter-spacing:1.5px;
+  background:linear-gradient(90deg,var(--pink),#C4005A);
+  color:white;padding:3px 14px;border-radius:0 0 4px 4px;
+}
+
+.pt{
+  font-family:'Rajdhani',sans-serif;
+  font-size:10px;font-weight:700;
+  letter-spacing:3px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:10px;
+}
+
+.pp{
+  font-family:'Orbitron',sans-serif;
+  font-size:48px;font-weight:700;
+  line-height:1;margin-bottom:4px;
+}
+.pp.free-c{color:var(--cyan);text-shadow:0 0 16px var(--cyan-glow);}
+.pp.pro-c{color:var(--pink);text-shadow:0 0 16px var(--pink-glow);}
+.pp.crew-c{color:var(--gold);}
+.pp.cre-c{color:var(--purple);}
+
+.pper{
+  font-family:'Rajdhani',sans-serif;
+  font-size:12px;letter-spacing:1px;
+  color:var(--muted);margin-bottom:22px;
+}
+
+.price-div{height:1px;background:rgba(255,255,255,0.05);margin-bottom:18px;}
+
+.pf-list{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:26px;}
+.pf-list li{
+  display:flex;align-items:center;gap:8px;
+  font-family:'Rajdhani',sans-serif;
+  font-size:13px;font-weight:500;color:var(--muted);
+}
+.pf-list li .ck{color:var(--cyan);font-size:11px;}
+.pf-list li .lk{color:#252535;font-size:11px;}
+
+.pb{
+  width:100%;
+  font-family:'Orbitron',sans-serif;
+  font-size:11px;font-weight:600;
+  letter-spacing:1.5px;text-transform:uppercase;
+  padding:12px;border-radius:3px;
+  cursor:pointer;transition:all 0.2s;
+}
+
+.pb-free{border:1px solid var(--border-c);background:none;color:var(--cyan);}
+.pb-free:hover{background:rgba(0,245,228,0.08);}
+.pb-pro{border:none;background:linear-gradient(135deg,var(--pink),#C4005A);color:white;}
+.pb-pro:hover{box-shadow:0 6px 24px rgba(255,30,111,0.4);}
+.pb-crew{border:1px solid rgba(255,209,102,0.3);background:rgba(255,209,102,0.05);color:var(--gold);}
+.pb-crew:hover{background:rgba(255,209,102,0.1);}
+.pb-cre{border:1px solid rgba(155,93,229,0.3);background:rgba(155,93,229,0.05);color:var(--purple);}
+.pb-cre:hover{background:rgba(155,93,229,0.12);}
+
+/* ── CTA BAND ── */
+.cta-band{
+  background:linear-gradient(135deg,rgba(255,30,111,0.12),rgba(0,245,228,0.08));
+  border-top:1px solid var(--border-p);
+  border-bottom:1px solid var(--border-c);
+  padding:60px 40px;
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.cta-band::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,30,111,0.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,30,111,0.06) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+.cta-inner{position:relative;z-index:1;}
+.cta-title{
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(28px,5vw,52px);
+  font-weight:900;letter-spacing:3px;
+  line-height:1.1;margin-bottom:14px;
+}
+.cta-sub{font-size:15px;color:var(--muted);margin-bottom:32px;letter-spacing:1px;}
+.cta-btns{display:flex;gap:16px;justify-content:center;}
+
+/* ── FOOTER ── */
+footer{
+  background:var(--bg);
+  border-top:1px solid var(--border-p);
+  padding:48px 40px 24px;
+}
+.ft-inner{max-width:1200px;margin:0 auto;}
+
+.ft-top{
+  display:flex;justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:40px;flex-wrap:wrap;gap:32px;
+}
+
+.ft-brand{}
+.ft-logo{
+  font-family:'Orbitron',sans-serif;
+  font-size:24px;font-weight:700;letter-spacing:3px;
+  background:linear-gradient(90deg,var(--pink),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;margin-bottom:6px;
+}
+.ft-desc{font-size:13px;color:var(--muted);max-width:260px;line-height:1.6;}
+
+.ft-links{display:flex;gap:48px;flex-wrap:wrap;}
+.ft-col h4{
+  font-family:'Orbitron',sans-serif;
+  font-size:10px;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--pink);margin-bottom:14px;
+}
+.ft-col a{
+  display:block;font-size:13px;color:var(--muted);
+  text-decoration:none;margin-bottom:7px;transition:color 0.15s;
+}
+.ft-col a:hover{color:var(--text);}
+
+.ft-bottom{
+  border-top:1px solid rgba(255,255,255,0.04);
+  padding-top:20px;
+  display:flex;justify-content:space-between;
+  align-items:center;flex-wrap:wrap;gap:12px;
+}
+.ft-copy{font-size:11px;color:var(--muted);opacity:0.45;}
+.ft-disc{
+  font-size:10px;color:var(--muted);opacity:0.35;
+  max-width:480px;text-align:right;line-height:1.5;
+}
+
+/* ── MODAL ── */
+.modal-bg{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(6,8,15,0.94);
+  backdrop-filter:blur(16px);
+  display:none;align-items:center;justify-content:center;
+  padding:20px;
+}
+.modal-bg.open{display:flex;}
+
+.modal{
+  background:var(--bg3);
+  border:1px solid var(--border-p);
+  border-radius:8px;padding:40px;
+  max-width:500px;width:100%;position:relative;
+  box-shadow:0 0 100px rgba(255,30,111,0.2);
+}
+.modal::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--pink),var(--cyan));
+  border-radius:8px 8px 0 0;
+}
+
+.modal-x{
+  position:absolute;top:16px;right:16px;
+  background:none;border:none;
+  color:var(--muted);font-size:20px;cursor:pointer;
+  transition:color 0.15s;line-height:1;
+}
+.modal-x:hover{color:var(--text);}
+
+.modal-title{
+  font-family:'Orbitron',sans-serif;
+  font-size:26px;font-weight:700;
+  letter-spacing:2px;color:var(--pink);
+  text-shadow:0 0 20px var(--pink-glow);
+  margin-bottom:4px;
+}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:24px;}
+
+.fg{margin-bottom:14px;}
+.fl{
+  display:block;
+  font-family:'Rajdhani',sans-serif;
+  font-size:10px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:6px;
+}
+.fi,.fs,.fta{
+  width:100%;
+  background:var(--surface2);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:4px;padding:10px 14px;
+  font-family:'Rajdhani',sans-serif;
+  font-size:14px;font-weight:500;color:var(--text);
+  outline:none;transition:border-color 0.15s;
+}
+.fi:focus,.fs:focus,.fta:focus{border-color:var(--border-p);}
+.fs{appearance:none;cursor:pointer;}
+.fta{resize:vertical;min-height:80px;}
+
+.fsub{
+  width:100%;margin-top:8px;
+  font-family:'Orbitron',sans-serif;
+  font-size:12px;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;
+  padding:14px;border-radius:3px;
+  border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--pink),#C4005A);
+  color:white;transition:all 0.2s;
+}
+.fsub:hover{box-shadow:0 8px 30px rgba(255,30,111,0.45);}
+
+.form-ok{display:none;text-align:center;padding:24px 0;}
+.ok-icon{font-size:48px;margin-bottom:14px;}
+.ok-title{
+  font-family:'Orbitron',sans-serif;
+  font-size:24px;font-weight:700;
+  letter-spacing:2px;color:var(--cyan);
+  text-shadow:0 0 16px var(--cyan-glow);
+  margin-bottom:8px;
+}
+.ok-txt{font-size:13px;color:var(--muted);line-height:1.6;}
+</style>
+</head>
+<body>
+
+<!-- RETRO GRID -->
+<div class="retro-grid">
+  <div class="grid-plane"></div>
+  <div class="grid-fade"></div>
+</div>
+
+<div class="app">
+
+<!-- HEADER -->
+<header>
+  <a class="logo" href="#">
+    <div class="logo-mark">
+      <div class="logo-diamond"></div>
+      <div class="logo-dot"></div>
+    </div>
+    <div class="logo-text-wrap">
+      <span class="logo-name">VICEMAP</span>
+      <span class="logo-tagline">GTA 6 Community Discovery</span>
+    </div>
+  </a>
+  <nav>
+    <button class="nav-link active" onclick="goTo('map-wrap')">Map</button>
+    <button class="nav-link" onclick="goTo('feat-section')">Features</button>
+    <button class="nav-link" onclick="goTo('sc-section')">Scout Cards</button>
+    <button class="nav-link" onclick="goTo('price-section')">Pricing</button>
+    <button class="nav-pin-btn" onclick="openModal()">⊕ Drop Pin</button>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-orb"></div>
+  <div class="hero-orb2"></div>
+
+  <!-- Particles -->
+  <div id="particles"></div>
+
+  <div class="hero-eyebrow">
+    <div class="eyebrow-dot"></div>
+    Fan Community · Unofficial · vicemap.gg
+  </div>
+
+  <h1 class="hero-logo-giant">
+    <span class="hero-v">V</span><span class="hero-i">I</span><span class="hero-ce">CE</span>
+    <span class="hero-map">MAP</span>
+  </h1>
+
+  <p class="hero-sub">The GTA 6 Community Discovery Map</p>
+
+  <div class="deco-hr">
+    <div class="deco-hr-line"></div>
+    <div class="deco-hr-sm"></div>
+    <div class="deco-hr-diamond"></div>
+    <div class="deco-hr-sm"></div>
+    <div class="deco-hr-line"></div>
+  </div>
+
+  <p class="hero-desc">
+    <strong>Drop theory pins. Claim discoveries first.</strong> Share Scout Cards.
+    The community map for GTA 6 — built by fans, for fans.
+    Be the one who found it before everyone else.
+  </p>
+
+  <div class="hero-btns">
+    <button class="btn-gta" onclick="goTo('map-wrap')">Explore the Map</button>
+    <button class="btn-outline" onclick="openModal()">Drop a Pin</button>
+  </div>
+
+  <div class="countdown-wrap">
+    <div class="countdown-label">GTA 6 Launch · November 19, 2026</div>
+    <div class="countdown">
+      <div class="cd-block">
+        <div class="cd-num" id="cd-d">178</div>
+        <div class="cd-unit">Days</div>
+      </div>
+      <div class="cd-sep">:</div>
+      <div class="cd-block">
+        <div class="cd-num" id="cd-h">14</div>
+        <div class="cd-unit">Hours</div>
+      </div>
+      <div class="cd-sep">:</div>
+      <div class="cd-block">
+        <div class="cd-num" id="cd-m">22</div>
+        <div class="cd-unit">Mins</div>
+      </div>
+      <div class="cd-sep">:</div>
+      <div class="cd-block">
+        <div class="cd-num" id="cd-s">45</div>
+        <div class="cd-unit">Secs</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Retro sun -->
+  <div class="retro-sun">
+    <div class="sun-circle"><div class="sun-lines"></div></div>
+  </div>
+
+  <!-- Palms -->
+  <svg class="palms" viewBox="0 0 1400 260" preserveAspectRatio="xMidYMax meet">
+    <!-- Left palm -->
+    <rect x="72" y="120" width="5" height="140" fill="#FF1E6F" rx="2"/>
+    <ellipse cx="74" cy="118" rx="42" ry="11" fill="#FF1E6F" transform="rotate(-35,74,118)"/>
+    <ellipse cx="74" cy="118" rx="42" ry="11" fill="#FF1E6F" transform="rotate(25,74,118)"/>
+    <ellipse cx="74" cy="118" rx="42" ry="11" fill="#FF1E6F" transform="rotate(-80,74,118)"/>
+    <ellipse cx="74" cy="118" rx="42" ry="11" fill="#FF1E6F" transform="rotate(70,74,118)"/>
+    <ellipse cx="74" cy="118" rx="42" ry="11" fill="#FF1E6F" transform="rotate(0,74,118)"/>
+    <!-- 2nd left -->
+    <rect x="190" y="160" width="4" height="100" fill="#FF1E6F" rx="2" opacity="0.7"/>
+    <ellipse cx="192" cy="158" rx="30" ry="9" fill="#FF1E6F" transform="rotate(-40,192,158)" opacity="0.7"/>
+    <ellipse cx="192" cy="158" rx="30" ry="9" fill="#FF1E6F" transform="rotate(30,192,158)" opacity="0.7"/>
+    <ellipse cx="192" cy="158" rx="30" ry="9" fill="#FF1E6F" transform="rotate(-85,192,158)" opacity="0.7"/>
+    <!-- Right palm -->
+    <rect x="1323" y="110" width="5" height="150" fill="#00F5E4" rx="2"/>
+    <ellipse cx="1325" cy="108" rx="45" ry="12" fill="#00F5E4" transform="rotate(-25,1325,108)"/>
+    <ellipse cx="1325" cy="108" rx="45" ry="12" fill="#00F5E4" transform="rotate(35,1325,108)"/>
+    <ellipse cx="1325" cy="108" rx="45" ry="12" fill="#00F5E4" transform="rotate(-75,1325,108)"/>
+    <ellipse cx="1325" cy="108" rx="45" ry="12" fill="#00F5E4" transform="rotate(75,1325,108)"/>
+    <ellipse cx="1325" cy="108" rx="45" ry="12" fill="#00F5E4" transform="rotate(5,1325,108)"/>
+    <!-- 2nd right -->
+    <rect x="1210" y="155" width="4" height="105" fill="#00F5E4" rx="2" opacity="0.7"/>
+    <ellipse cx="1212" cy="153" rx="32" ry="9" fill="#00F5E4" transform="rotate(-30,1212,153)" opacity="0.7"/>
+    <ellipse cx="1212" cy="153" rx="32" ry="9" fill="#00F5E4" transform="rotate(40,1212,153)" opacity="0.7"/>
+    <ellipse cx="1212" cy="153" rx="32" ry="9" fill="#00F5E4" transform="rotate(-80,1212,153)" opacity="0.7"/>
+  </svg>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner" id="ticker-inner"></div>
+</div>
+
+<!-- STATS -->
+<div class="stats-section">
+  <div class="stat-card">
+    <div class="stat-num p" id="s-pins">0</div>
+    <div class="stat-label">Pins Dropped</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num c">6</div>
+    <div class="stat-label">Confirmed Regions</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num g" id="s-scouts">0</div>
+    <div class="stat-label">Active Scouts</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num p">250M+</div>
+    <div class="stat-label">Trailer Views · Biggest Launch Ever</div>
+  </div>
+</div>
+
+<!-- MAP SECTION -->
+<div class="map-wrap" id="map-wrap">
+  <div class="map-wrap-inner">
+    <div class="eyebrow">State of Leonida</div>
+    <h2 class="section-title">Explore the <span class="c">Map</span></h2>
+
+    <div class="map-app">
+      <!-- Sidebar -->
+      <div class="map-sb">
+        <div class="sb-head">
+          <span class="sb-title">Regions</span>
+          <span class="sb-count" id="total-pins">118 pins</span>
+        </div>
+        <div class="filter-bar">
+          <button class="fpill fc">Confirmed</button>
+          <button class="fpill fp">Rumored</button>
+          <button class="fpill">Locked</button>
+        </div>
+        <div class="progress-wrap">
+          <div class="prog-label">
+            <span>Map Completion</span>
+            <span style="color:var(--cyan)">34% Scouted</span>
+          </div>
+          <div class="prog-track">
+            <div class="prog-fill" id="prog-fill"></div>
+          </div>
+        </div>
+        <div class="region-list" id="region-list"></div>
+      </div>
+
+      <!-- Map canvas -->
+      <div class="map-canvas">
+        <div class="map-hdr">
+          <span class="map-hdr-l">State of Leonida · ViceMap Fan Edition · Not Official</span>
+          <div class="legend">
+            <div class="leg-item"><div class="leg-dot c"></div><span style="color:var(--cyan);font-family:'Rajdhani';font-size:10px;font-weight:700;letter-spacing:1px">Confirmed</span></div>
+            <div class="leg-item"><div class="leg-dot p"></div><span style="color:var(--pink);font-family:'Rajdhani';font-size:10px;font-weight:700;letter-spacing:1px">Rumored</span></div>
+            <div class="leg-item"><div class="leg-dot g"></div><span style="color:var(--muted);font-family:'Rajdhani';font-size:10px;font-weight:700;letter-spacing:1px">Locked</span></div>
+          </div>
+        </div>
+        <div class="map-body">
+          <div class="map-grid-bg"></div>
+          <div class="map-svg-wrap">
+            <svg width="580" height="360" viewBox="0 0 580 360" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <radialGradient id="vcg" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#FF1E6F" stop-opacity="0.25"/>
+                  <stop offset="100%" stop-color="#FF1E6F" stop-opacity="0"/>
+                </radialGradient>
+                <radialGradient id="cg" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#00F5E4" stop-opacity="0.18"/>
+                  <stop offset="100%" stop-color="#00F5E4" stop-opacity="0"/>
+                </radialGradient>
+                <filter id="gf"><feGaussianBlur stdDeviation="4"/></filter>
+              </defs>
+
+              <!-- Landmass -->
+              <path d="M130,55 L360,38 L490,85 L510,195 L490,275 L400,315 L275,325 L185,295 L125,230 L95,145 Z"
+                fill="rgba(0,245,228,0.02)" stroke="rgba(0,245,228,0.1)" stroke-width="1" stroke-dasharray="7,5"/>
+
+              <!-- Water body -->
+              <ellipse cx="308" cy="205" rx="68" ry="42"
+                fill="rgba(0,60,180,0.12)" stroke="rgba(0,150,255,0.18)" stroke-width="0.8"/>
+              <text x="308" y="209" text-anchor="middle"
+                font-family="'Rajdhani'" font-weight="700" font-size="8"
+                fill="rgba(0,180,255,0.4)" letter-spacing="2">LAKE LEONIDA</text>
+
+              <!-- Glows -->
+              <ellipse cx="355" cy="195" rx="80" ry="60" fill="url(#vcg)" filter="url(#gf)"/>
+              <ellipse cx="210" cy="250" rx="60" ry="44" fill="url(#cg)" filter="url(#gf)"/>
+
+              <!-- Road network -->
+              <line x1="210" y1="108" x2="355" y2="192" stroke="rgba(255,30,111,0.07)" stroke-width="1.5" stroke-dasharray="5,5"/>
+              <line x1="355" y1="192" x2="400" y2="255" stroke="rgba(0,245,228,0.07)" stroke-width="1.5" stroke-dasharray="5,5"/>
+              <line x1="355" y1="192" x2="240" y2="242" stroke="rgba(255,30,111,0.05)" stroke-width="1" stroke-dasharray="4,4"/>
+              <line x1="355" y1="192" x2="425" y2="152" stroke="rgba(0,245,228,0.05)" stroke-width="1" stroke-dasharray="4,4"/>
+              <line x1="240" y1="242" x2="400" y2="255" stroke="rgba(0,245,228,0.04)" stroke-width="1" stroke-dasharray="3,5"/>
+
+              <!-- VICE CITY — main star -->
+              <circle cx="355" cy="192" r="20" fill="rgba(255,30,111,0.08)" stroke="none"/>
+              <circle cx="355" cy="192" r="12" fill="rgba(255,30,111,0.14)" stroke="rgba(255,30,111,0.5)" stroke-width="1.5"/>
+              <circle cx="355" cy="192" r="5" fill="#FF1E6F"/>
+              <circle cx="355" cy="192" r="5" fill="#FF1E6F" filter="url(#gf)" opacity="0.8"/>
+              <!-- Pulse ring -->
+              <circle cx="355" cy="192" r="18" fill="none" stroke="rgba(255,30,111,0.3)" stroke-width="1">
+                <animate attributeName="r" values="12;24;12" dur="2.5s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="0.5;0;0.5" dur="2.5s" repeatCount="indefinite"/>
+              </circle>
+              <text x="372" y="185" font-family="'Orbitron'" font-size="12" font-weight="700" fill="#FF1E6F" letter-spacing="1">VICE CITY</text>
+              <text x="372" y="197" font-family="'Rajdhani'" font-size="8" font-weight="700" fill="rgba(255,30,111,0.55)" letter-spacing="1.5">CONFIRMED · 48 PINS</text>
+
+              <!-- LEONIDA KEYS -->
+              <circle cx="412" cy="268" r="9" fill="rgba(0,245,228,0.1)" stroke="rgba(0,245,228,0.45)" stroke-width="1.2"/>
+              <circle cx="412" cy="268" r="4" fill="#00F5E4" opacity="0.9"/>
+              <text x="426" y="264" font-family="'Orbitron'" font-size="10" font-weight="600" fill="#00F5E4" letter-spacing="0.5">L. KEYS</text>
+              <text x="426" y="275" font-family="'Rajdhani'" font-size="8" font-weight="600" fill="rgba(0,245,228,0.5)" letter-spacing="1">22 PINS</text>
+
+              <!-- GRASSRIVERS -->
+              <circle cx="222" cy="250" r="9" fill="rgba(0,245,228,0.08)" stroke="rgba(0,245,228,0.35)" stroke-width="1.2"/>
+              <circle cx="222" cy="250" r="4" fill="#00F5E4" opacity="0.85"/>
+              <text x="236" y="246" font-family="'Orbitron'" font-size="10" font-weight="600" fill="#00F5E4" letter-spacing="0.5">GRASSRIVERS</text>
+              <text x="236" y="257" font-family="'Rajdhani'" font-size="8" font-weight="600" fill="rgba(0,245,228,0.5)" letter-spacing="1">17 PINS</text>
+
+              <!-- MT KALAGA -->
+              <circle cx="196" cy="112" r="8" fill="rgba(0,245,228,0.07)" stroke="rgba(0,245,228,0.3)" stroke-width="1.2"/>
+              <circle cx="196" cy="112" r="3.5" fill="#00F5E4" opacity="0.8"/>
+              <text x="210" y="108" font-family="'Orbitron'" font-size="10" font-weight="600" fill="#00F5E4" letter-spacing="0.5">MT. KALAGA</text>
+              <text x="210" y="119" font-family="'Rajdhani'" font-size="8" font-weight="600" fill="rgba(0,245,228,0.5)" letter-spacing="1">11 PINS</text>
+
+              <!-- AMBROSIA -->
+              <circle cx="288" cy="148" r="6" fill="rgba(0,245,228,0.06)" stroke="rgba(0,245,228,0.25)" stroke-width="1"/>
+              <circle cx="288" cy="148" r="2.5" fill="#00F5E4" opacity="0.7"/>
+              <text x="300" y="152" font-family="'Orbitron'" font-size="9" font-weight="600" fill="rgba(0,245,228,0.65)" letter-spacing="0.5">AMBROSIA</text>
+
+              <!-- PORT GELLHORN -->
+              <circle cx="432" cy="155" r="6" fill="rgba(0,245,228,0.06)" stroke="rgba(0,245,228,0.25)" stroke-width="1"/>
+              <circle cx="432" cy="155" r="2.5" fill="#00F5E4" opacity="0.7"/>
+              <text x="444" y="159" font-family="'Orbitron'" font-size="9" font-weight="600" fill="rgba(0,245,228,0.65)" letter-spacing="0.5">PORT GEL.</text>
+
+              <!-- GLORIANA RUMORED -->
+              <circle cx="152" cy="192" r="7" fill="rgba(255,30,111,0.06)" stroke="rgba(255,30,111,0.22)" stroke-width="1" stroke-dasharray="2,2"/>
+              <circle cx="152" cy="192" r="3" fill="#FF1E6F" opacity="0.45"/>
+              <text x="164" y="196" font-family="'Orbitron'" font-size="9" font-weight="600" fill="rgba(255,30,111,0.5)" letter-spacing="0.5">GLORIANA?</text>
+
+              <!-- LOCKED -->
+              <circle cx="468" cy="100" r="6" fill="rgba(30,30,50,0.4)" stroke="#252535" stroke-width="1" stroke-dasharray="2,2"/>
+              <text x="478" y="104" font-family="'Rajdhani'" font-size="9" font-weight="600" fill="#2A2A40" letter-spacing="1">UNKNOWN</text>
+              <text x="468" y="100" text-anchor="middle" font-size="8" fill="#333">🔒</text>
+
+              <!-- Compass rose -->
+              <g transform="translate(542,32)">
+                <circle cx="0" cy="0" r="20" fill="rgba(6,8,15,0.95)" stroke="rgba(255,30,111,0.3)" stroke-width="1"/>
+                <text x="0" y="-6" text-anchor="middle" font-family="'Orbitron'" font-size="10" font-weight="700" fill="#FF1E6F">N</text>
+                <text x="0" y="12" text-anchor="middle" font-family="'Orbitron'" font-size="7" fill="var(--muted)">S</text>
+                <text x="-12" y="4" text-anchor="middle" font-family="'Orbitron'" font-size="7" fill="var(--muted)">W</text>
+                <text x="12" y="4" text-anchor="middle" font-family="'Orbitron'" font-size="7" fill="var(--muted)">E</text>
+                <line x1="0" y1="-14" x2="0" y2="-4" stroke="#FF1E6F" stroke-width="1.5"/>
+              </g>
+
+              <!-- Mini coordinate labels -->
+              <text x="12" y="15" font-family="'Orbitron'" font-size="7" fill="rgba(0,245,228,0.2)" letter-spacing="1">25°N 80°W · VICE MAP FAN EDITION</text>
+            </svg>
+          </div>
+        </div>
+        <div class="map-info-bar">
+          <div>
+            <div class="mi-name" id="mi-name">VICE CITY</div>
+            <div class="mi-desc" id="mi-desc">The glamour, hustle, and greed of America in a single city. Ocean Beach, Little Haiti, Little Havana — reimagined with art deco skylines and neon-soaked nightlife.</div>
+          </div>
+          <div class="mi-stats">
+            <div class="mi-stat">
+              <div class="mi-stat-num" id="mi-pins">48</div>
+              <div class="mi-stat-lbl">Pins</div>
+            </div>
+            <div class="mi-stat">
+              <div class="mi-stat-num" id="mi-scouts">1,247</div>
+              <div class="mi-stat-lbl">Scouts</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section" id="feat-section">
+  <div class="eyebrow">Built Different</div>
+  <h2 class="section-title">What ViceMap <span class="pk">Does</span></h2>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-num">01</div>
+      <span class="feat-icon">📍</span>
+      <div class="feat-title">Community Pins</div>
+      <div class="feat-desc">Drop theory pins before launch. Claim real discoveries day one. Every pin is community-verified. Your name is on it forever.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-num">02</div>
+      <span class="feat-icon">🃏</span>
+      <div class="feat-title">Scout Cards</div>
+      <div class="feat-desc">Auto-generated shareable cards built for TikTok and Stories. Proof you found it first — formatted so your followers see it instantly.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-num">03</div>
+      <span class="feat-icon">🔒</span>
+      <div class="feat-title">Spoiler Filter</div>
+      <div class="feat-desc">Control what you see. Pre-launch theories only. Or go full post-launch with Easter eggs, money spots, safehouse locations — your call.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-num">04</div>
+      <span class="feat-icon">🏆</span>
+      <div class="feat-title">Scout Leaderboard</div>
+      <div class="feat-desc">Weekly global rankings. Most pins. Most verified. Most first discoveries. The top scouts get recognized in the weekly Scout Report.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-num">05</div>
+      <span class="feat-icon">👥</span>
+      <div class="feat-title">Crew Maps</div>
+      <div class="feat-desc">Private maps for your squad only. Coordinate heist sessions, share money routes, flag modder lobbies before your crew joins.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-num">06</div>
+      <span class="feat-icon">⚡</span>
+      <div class="feat-title">Live Discovery Feed</div>
+      <div class="feat-desc">Real-time pulse of what's being found right now. Filter by region, pin type, or creator. Never miss a discovery the moment it drops.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SCOUT CARD SECTION -->
+<div class="sc-section" id="sc-section">
+  <div class="sc-inner">
+    <div class="eyebrow">Content Creators</div>
+    <h2 class="section-title">Your <span class="pk">Scout Card</span></h2>
+    <div class="sc-grid">
+      <div class="scout-card">
+        <div class="sc-bg-grid"></div>
+        <div class="sc-top-line"></div>
+        <div class="sc-verified">◆ Verified Creator · ViceMap.gg</div>
+        <div class="sc-handle">@GTAVICEDAILY</div>
+        <div class="sc-role">Scout Rank · Vice City Region · Elite</div>
+        <div class="sc-find">
+          <div class="sc-find-label">🏆 First Discovery</div>
+          <div class="sc-find-name">Ocean Drive Safehouse · Confirmed</div>
+        </div>
+        <div class="sc-metrics">
+          <div class="sc-m">
+            <div class="sc-m-num">23</div>
+            <div class="sc-m-lbl">Pins</div>
+          </div>
+          <div class="sc-m">
+            <div class="sc-m-num">7</div>
+            <div class="sc-m-lbl">First Finds</div>
+          </div>
+          <div class="sc-m">
+            <div class="sc-m-num">#4</div>
+            <div class="sc-m-lbl">Global</div>
+          </div>
+        </div>
+        <div class="sc-footer-bar">
+          <div class="sc-app">VICEMAP.GG</div>
+          <div class="sc-elite">✦ Elite Scout</div>
+        </div>
+      </div>
+      <div class="sc-text">
+        <h3>Make Your Audience <span class="pk">Feel</span> Like Insiders</h3>
+        <p>GTA6 creators have a real problem right now — <strong>they post daily but the game isn't out yet.</strong> ViceMap gives them a tool that makes their audience feel like the first to know anything.</p>
+        <p>Every discovery generates a shareable Scout Card — proof you found it first, formatted for Stories and TikTok. One post from a creator with 100K followers drives hundreds of new scouts to the map.</p>
+        <ul class="check-list">
+          <li>Auto-generated card with your handle and global rank</li>
+          <li>Optimized dimensions for IG Stories, TikTok, and X</li>
+          <li>Verified Creator badge on your ViceMap profile</li>
+          <li>Your name stamped on every first discovery permanently</li>
+          <li>Featured in the weekly Scout Report to all users</li>
+          <li>Access to the private Creator Lounge Discord channel</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING -->
+<section class="section" id="price-section">
+  <div class="eyebrow">Join ViceMap</div>
+  <h2 class="section-title">Pick Your <span class="c">Rank</span></h2>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="pt">Recruit</div>
+      <div class="pp free-c">Free</div>
+      <div class="pper">Forever · No card needed</div>
+      <div class="price-div"></div>
+      <ul class="pf-list">
+        <li><span class="ck">◆</span> Full interactive map</li>
+        <li><span class="ck">◆</span> Community pin feed</li>
+        <li><span class="ck">◆</span> Theory submissions</li>
+        <li><span class="ck">◆</span> Basic scout profile</li>
+        <li><span class="lk">◆</span> <span style="opacity:0.3">Offline map access</span></li>
+        <li><span class="lk">◆</span> <span style="opacity:0.3">Early pin access</span></li>
+      </ul>
+      <button class="pb pb-free">Join Free</button>
+    </div>
+    <div class="price-card hot">
+      <div class="pt">Scout Pro</div>
+      <div class="pp pro-c">$3.99</div>
+      <div class="pper">per month · $24.99/year</div>
+      <div class="price-div"></div>
+      <ul class="pf-list">
+        <li><span class="ck">◆</span> Everything in Free</li>
+        <li><span class="ck">◆</span> Offline map access</li>
+        <li><span class="ck">◆</span> Early pin access</li>
+        <li><span class="ck">◆</span> Ad-free experience</li>
+        <li><span class="ck">◆</span> Full discovery history</li>
+        <li><span class="ck">◆</span> Custom badge color</li>
+      </ul>
+      <button class="pb pb-pro">Go Pro</button>
+    </div>
+    <div class="price-card">
+      <div class="pt">Crew Pro</div>
+      <div class="pp crew-c">$7.99</div>
+      <div class="pper">per month</div>
+      <div class="price-div"></div>
+      <ul class="pf-list">
+        <li><span class="ck">◆</span> Everything in Scout Pro</li>
+        <li><span class="ck">◆</span> Private crew map</li>
+        <li><span class="ck">◆</span> Session scheduler</li>
+        <li><span class="ck">◆</span> Voice note pins</li>
+        <li><span class="ck">◆</span> Modder alerts</li>
+        <li><span class="ck">◆</span> Crew leaderboard</li>
+      </ul>
+      <button class="pb pb-crew">Build Your Crew</button>
+    </div>
+    <div class="price-card">
+      <div class="pt">Creator Badge</div>
+      <div class="pp cre-c">$14.99</div>
+      <div class="pper">per month</div>
+      <div class="price-div"></div>
+      <ul class="pf-list">
+        <li><span class="ck">◆</span> Everything in Crew Pro</li>
+        <li><span class="ck">◆</span> Verified creator badge</li>
+        <li><span class="ck">◆</span> Branded Scout Cards</li>
+        <li><span class="ck">◆</span> Featured in discovery feed</li>
+        <li><span class="ck">◆</span> Scout Report shoutout</li>
+        <li><span class="ck">◆</span> Creator Lounge Discord</li>
+      </ul>
+      <button class="pb pb-cre">Get Verified</button>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BAND -->
+<div class="cta-band">
+  <div class="cta-inner">
+    <h2 class="cta-title">
+      <span style="color:var(--pink)">GTA 6</span> Drops<br>
+      <span style="color:var(--cyan)">November 19.</span>
+    </h2>
+    <p class="cta-sub">Be on the map before everyone else. Drop your first pin today.</p>
+    <div class="cta-btns">
+      <button class="btn-gta" onclick="openModal()">Drop a Pin Now</button>
+      <button class="btn-outline" onclick="goTo('map-wrap')">Explore the Map</button>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="ft-inner">
+    <div class="ft-top">
+      <div class="ft-brand">
+        <div class="ft-logo">VICEMAP</div>
+        <div class="ft-desc">The GTA 6 community discovery map. Built by fans. For fans. Drop pins, claim discoveries, share Scout Cards.</div>
+      </div>
+      <div class="ft-links">
+        <div class="ft-col">
+          <h4>Explore</h4>
+          <a href="#">The Map</a>
+          <a href="#">Discovery Feed</a>
+          <a href="#">Leaderboard</a>
+          <a href="#">Scout Cards</a>
+        </div>
+        <div class="ft-col">
+          <h4>Community</h4>
+          <a href="#">Discord Server</a>
+          <a href="#">Creator Program</a>
+          <a href="#">Drop a Pin</a>
+          <a href="#">Crew Finder</a>
+        </div>
+        <div class="ft-col">
+          <h4>ViceMap</h4>
+          <a href="#">About</a>
+          <a href="#">Pricing</a>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Use</a>
+        </div>
+      </div>
+    </div>
+    <div class="ft-bottom">
+      <div class="ft-copy">© 2026 ViceMap. All rights reserved.</div>
+      <div class="ft-disc">Unofficial fan community. Not affiliated with, endorsed by, or connected to Rockstar Games or Take-Two Interactive Software. Grand Theft Auto is a trademark of Take-Two Interactive Software, Inc.</div>
+    </div>
+  </div>
+</footer>
+
+</div><!-- end .app -->
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal" onclick="handleBgClick(event)">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <div id="mform">
+      <div class="modal-title">Drop a Pin</div>
+      <div class="modal-sub">Submit your theory or discovery to the ViceMap community.</div>
+      <div class="fg">
+        <label class="fl">Scout Handle</label>
+        <input class="fi" type="text" placeholder="@yourhandle">
+      </div>
+      <div class="fg">
+        <label class="fl">Region</label>
+        <select class="fs">
+          <option>Vice City</option>
+          <option>Leonida Keys</option>
+          <option>Grassrivers</option>
+          <option>Mount Kalaga</option>
+          <option>Ambrosia</option>
+          <option>Port Gellhorn</option>
+          <option>Gloriana (Rumored)</option>
+          <option>Unknown Region</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Pin Type</label>
+        <select class="fs">
+          <option>🔍 Theory — Pre-launch speculation</option>
+          <option>📍 Confirmed Location — Seen in trailer</option>
+          <option>🥚 Easter Egg — Post-launch discovery</option>
+          <option>💰 Money Spot — Best grinding location</option>
+          <option>🏠 Safehouse — Player property location</option>
+          <option>⚠️ Modder Alert — Active lobby warning</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Describe Your Discovery</label>
+        <textarea class="fta" placeholder="What did you find? Include trailer timestamp or screenshot proof if applicable..."></textarea>
+      </div>
+      <button class="fsub" onclick="submitPin()">Submit to ViceMap ◆</button>
+    </div>
+    <div class="form-ok" id="form-ok">
+      <div class="ok-icon">🗺️</div>
+      <div class="ok-title">Pin Submitted!</div>
+      <div class="ok-txt">
+        Your discovery is being reviewed by the community.<br>
+        Verified pins go live within 24 hours.<br><br>
+        <strong style="color:var(--cyan)">Your Scout Card is being generated.</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── REGION DATA ──
+const REGIONS = [
+  {emoji:'🌆',name:'Vice City',sub:'Glamour, hustle, greed. Miami reimagined.',status:'c',pins:48,scouts:1247,desc:'The glamour, hustle, and greed of America in a single city. Ocean Beach, Little Haiti, Little Havana — reimagined with art deco skylines and neon-soaked nightlife.'},
+  {emoji:'🌴',name:'Leonida Keys',sub:'Island chain. Paradise & danger.',status:'c',pins:22,scouts:834,desc:'Florida Keys-inspired island chain. Laid-back beach vibes meet dangerous offshore waters. Hidden coves and off-grid hideouts everywhere.'},
+  {emoji:'🐊',name:'Grassrivers',sub:'Wild Everglades swampland.',status:'c',pins:17,scouts:612,desc:'Wild Everglades swampland. Untamed wetlands packed with wildlife, hidden camps, and things that will absolutely kill you.'},
+  {emoji:'⛰️',name:'Mount Kalaga',sub:'National park. Canyons & cougars.',status:'c',pins:11,scouts:441,desc:'Northern national park — canyons, forests, rivers. Cougars roam freely. Paranoid radicals live off-grid here. Perfect for hunting and chaos.'},
+  {emoji:'🌾',name:'Ambrosia',sub:'Industrial heartland. Sugar refineries.',status:'c',pins:9,scouts:388,desc:'Industrial heartland of Leonida. Allied Crystal sugar refinery dominates everything. Rural towns, farm roads, buried secrets.'},
+  {emoji:'🚢',name:'Port Gellhorn',sub:'Rough vacation town. Cop magnet.',status:'c',pins:8,scouts:293,desc:'A beat-up vacation town turned cop magnet. Anything goes here. Perfect for losing a wanted level or starting trouble.'},
+  {emoji:'❓',name:'Gloriana',sub:'Possible second state. Georgia vibes.',status:'r',pins:3,scouts:197,desc:'Possible second state based on Georgia. Evidence spotted in trailer background footage. Community is mapping it frame by frame.'},
+  {emoji:'🔒',name:'Unknown Region',sub:'Frame 2:14 spotted. Unverified.',status:'l',pins:0,scouts:0,desc:'Unidentified terrain at trailer frame 2:14. Dense vegetation, unfamiliar architecture. No consensus yet. Drop a theory below.'}
+];
+
+// Build region list
+const list = document.getElementById('region-list');
+REGIONS.forEach((r,i)=>{
+  const el = document.createElement('div');
+  el.className='ri'+(i===0?' active':'');
+  el.onclick=()=>selectRegion(i,el);
+  el.innerHTML=`
+    <div class="ri-emoji">${r.emoji}</div>
+    <div class="ri-body">
+      <div class="ri-name">${r.name}</div>
+      <div class="ri-sub">${r.sub}</div>
+      <div class="ri-meta">
+        <span class="badge badge-${r.status}">${r.status==='c'?'CONFIRMED':r.status==='r'?'RUMORED':'LOCKED'}</span>
+        <span class="badge badge-pins">${r.pins} pins</span>
+      </div>
+    </div>`;
+  list.appendChild(el);
+});
+
+function selectRegion(i,el){
+  document.querySelectorAll('.ri').forEach(r=>r.classList.remove('active'));
+  el.classList.add('active');
+  const r=REGIONS[i];
+  document.getElementById('mi-name').textContent=r.name.toUpperCase();
+  document.getElementById('mi-name').style.color=r.status==='c'?'var(--cyan)':r.status==='r'?'var(--pink)':'var(--muted)';
+  document.getElementById('mi-desc').textContent=r.desc;
+  document.getElementById('mi-pins').textContent=r.pins;
+  document.getElementById('mi-scouts').textContent=r.scouts.toLocaleString();
+}
+
+// ── TICKER ──
+const TICKS=[
+  '📍 New pin: Ocean Drive Safehouse — Vice City',
+  '🥚 Easter Egg spotted: Little Haiti mural',
+  '💰 Money spot confirmed: Port Gellhorn docks',
+  '🔍 Theory: Gloriana state border at mile marker 42',
+  '⚡ Modder-free lobby: 4,200 scouts active now',
+  '🏆 Top Scout this week: @GTA6Daily · 14 pins',
+  '📍 New pin: Mount Kalaga hidden cave system',
+  '🌴 Keys discovery: underwater ruins confirmed',
+  '💰 Grassrivers: gator farm grinding spot verified',
+  '🔍 Frame 2:14 analysis: 3 new structures identified'
+];
+
+const ti = document.getElementById('ticker-inner');
+[...TICKS,...TICKS].forEach(t=>{
+  const s=document.createElement('span');
+  s.className='ticker-item';
+  s.innerHTML=`<span class="dot"></span>${t}`;
+  ti.appendChild(s);
+});
+
+// ── COUNTDOWN ──
+function tick(){
+  const launch=new Date('2026-11-19T00:00:00');
+  const diff=launch-new Date();
+  if(diff<=0)return;
+  const d=Math.floor(diff/864e5);
+  const h=Math.floor(diff%864e5/36e5);
+  const m=Math.floor(diff%36e5/6e4);
+  const s=Math.floor(diff%6e4/1e3);
+  document.getElementById('cd-d').textContent=d;
+  document.getElementById('cd-h').textContent=String(h).padStart(2,'0');
+  document.getElementById('cd-m').textContent=String(m).padStart(2,'0');
+  document.getElementById('cd-s').textContent=String(s).padStart(2,'0');
+}
+tick();setInterval(tick,1000);
+
+// ── ANIMATED STATS ──
+function countUp(el,target,ms){
+  let v=0,step=target/(ms/16);
+  const t=setInterval(()=>{
+    v=Math.min(v+step,target);
+    el.textContent=Math.floor(v).toLocaleString();
+    if(v>=target)clearInterval(t);
+  },16);
+}
+setTimeout(()=>{
+  countUp(document.getElementById('s-pins'),1247,1600);
+  countUp(document.getElementById('s-scouts'),4832,2000);
+},500);
+
+// ── PROGRESS BAR ──
+setTimeout(()=>{
+  document.getElementById('prog-fill').style.width='34%';
+},600);
+
+// ── PARTICLES ──
+const pc=document.getElementById('particles');
+for(let i=0;i<18;i++){
+  const p=document.createElement('div');
+  p.className='particle';
+  const size=Math.random()*3+1;
+  const color=Math.random()>0.5?'var(--pink)':'var(--cyan)';
+  p.style.cssText=`
+    width:${size}px;height:${size}px;
+    background:${color};
+    left:${Math.random()*100}%;
+    bottom:${Math.random()*40}%;
+    animation-duration:${8+Math.random()*12}s;
+    animation-delay:${Math.random()*8}s;
+    opacity:0;
+  `;
+  pc.appendChild(p);
+}
+
+// ── MODAL ──
+function openModal(){document.getElementById('modal').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+function handleBgClick(e){if(e.target===document.getElementById('modal'))closeModal();}
+function submitPin(){
+  document.getElementById('mform').style.display='none';
+  document.getElementById('form-ok').style.display='block';
+}
+
+// ── NAV SCROLL ──
+function goTo(id){
+  const el=document.getElementById(id);
+  if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// Nav active on scroll
+const NAV_SECTIONS=['map-wrap','feat-section','sc-section','price-section'];
+const navLinks=document.querySelectorAll('.nav-link');
+window.addEventListener('scroll',()=>{
+  const y=window.scrollY+80;
+  NAV_SECTIONS.forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el&&y>=el.offsetTop){
+      navLinks.forEach(b=>b.classList.remove('active'));
+      if(navLinks[i])navLinks[i].classList.add('active');
+    }
+  });
+  if(window.scrollY<100){
+    navLinks.forEach(b=>b.classList.remove('active'));
+    navLinks[0].classList.add('active');
+  }
+});
+</script>
+</body>
+</html>
