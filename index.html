@@ -517,7 +517,14 @@ nav{display:flex;align-items:center;gap:4px;}
   to{opacity:1;transform:translateY(0);}
 }
 
-/* ── TICKER ── */
+/* Hero waitlist */
+.hero-wl{
+  width:100%;max-width:560px;
+  margin:0 auto;
+  animation:fadeUp 0.7s 0.4s ease both;
+}
+
+
 .ticker{
   background:var(--bg2);
   border-top:1px solid var(--border-p);
@@ -1403,7 +1410,7 @@ footer{
 
   <div class="hero-eyebrow">
     <div class="eyebrow-dot"></div>
-    Fan Community · Unofficial · vicemap.gg
+    Fan Community · Unofficial · vicemap.app
   </div>
 
   <h1 class="hero-logo-giant">
@@ -1427,12 +1434,35 @@ footer{
     Be the one who found it before everyone else.
   </p>
 
-  <div class="hero-btns">
-    <button class="btn-gta" onclick="goTo('map-wrap')">Explore the Map</button>
-    <button class="btn-outline" onclick="openModal()">Drop a Pin</button>
+  <!-- HERO WAITLIST FORM -->
+  <div class="hero-wl" id="hero-wl-wrap">
+    <div class="wl-form" style="max-width:500px;margin:0 auto 14px;">
+      <input class="wl-input" type="email" id="wl-email" placeholder="Enter your email — get early access" autocomplete="email">
+      <button class="wl-btn" onclick="joinWaitlist()">
+        <span id="wl-btn-text">Join Waitlist ◆</span>
+      </button>
+    </div>
+    <div class="wl-perks">
+      <div class="wl-perk"><span class="wl-dot"></span>Priority access at launch</div>
+      <div class="wl-perk"><span class="wl-dot"></span>Free Scout Pro — first 500 only</div>
+      <div class="wl-perk"><span class="wl-dot"></span>Weekly map drops before public</div>
+    </div>
+    <div class="wl-count"><span id="wl-num">2,847</span> scouts already on the list</div>
   </div>
 
-  <div class="countdown-wrap">
+  <!-- HERO SUCCESS STATE -->
+  <div class="wl-success" id="wl-success">
+    <div class="wl-success-icon">🗺️</div>
+    <div class="wl-success-title">You're on the list!</div>
+    <div class="wl-success-sub">Early access locked in for November 19.<br>Share your link to move up the priority queue.</div>
+    <div class="wl-ref-box" id="wl-ref-box">
+      <div class="wl-ref-label">Your Priority Link</div>
+      <div class="wl-ref-link" id="wl-ref-link">vicemap.app?ref=scout</div>
+      <button class="wl-copy-btn" onclick="copyRef()">Copy & Share Link</button>
+    </div>
+  </div>
+
+  <div class="countdown-wrap" style="margin-top:40px;">
     <div class="countdown-label">GTA 6 Launch · November 19, 2026</div>
     <div class="countdown">
       <div class="cd-block">
@@ -1455,6 +1485,10 @@ footer{
         <div class="cd-unit">Secs</div>
       </div>
     </div>
+  </div>
+
+  <div style="margin-top:20px;">
+    <button class="btn-outline" onclick="goTo('map-wrap')" style="font-size:11px;padding:10px 24px;">Explore the Map ↓</button>
   </div>
 
   <!-- Retro sun -->
@@ -1734,7 +1768,7 @@ footer{
       <div class="scout-card">
         <div class="sc-bg-grid"></div>
         <div class="sc-top-line"></div>
-        <div class="sc-verified">◆ Verified Creator · ViceMap.gg</div>
+        <div class="sc-verified">◆ Verified Creator · ViceMap.app</div>
         <div class="sc-handle">@GTAVICEDAILY</div>
         <div class="sc-role">Scout Rank · Vice City Region · Elite</div>
         <div class="sc-find">
@@ -1756,7 +1790,7 @@ footer{
           </div>
         </div>
         <div class="sc-footer-bar">
-          <div class="sc-app">VICEMAP.GG</div>
+          <div class="sc-app">VICEMAP.APP</div>
           <div class="sc-elite">✦ Elite Scout</div>
         </div>
       </div>
