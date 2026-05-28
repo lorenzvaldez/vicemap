@@ -2150,14 +2150,14 @@ function submitPin(){
 const urlParams = new URLSearchParams(window.location.search);
 const refCode = urlParams.get('ref') || '';
 
-function joinWaitlist(){
+async function joinWaitlist(){
   const email = document.getElementById('wl-email').value.trim();
   if(!email || !email.includes('@')){
     document.getElementById('wl-email').style.borderColor = 'var(--pink)';
     document.getElementById('wl-email').placeholder = 'Enter a valid email!';
     setTimeout(()=>{
       document.getElementById('wl-email').style.borderColor = '';
-      document.getElementById('wl-email').placeholder = 'Enter your email address';
+      document.getElementById('wl-email').placeholder = 'Enter your email — get early access';
     }, 2000);
     return;
   }
@@ -2165,26 +2165,46 @@ function joinWaitlist(){
   // Generate unique ref slug from email
   const slug = email.split('@')[0].replace(/[^a-zA-Z0-9]/g,'').toLowerCase().slice(0,12);
   const refLink = `vicemap.app?ref=${slug}`;
+  const ref = refCode || 'direct';
 
   // Update button to loading
   document.getElementById('wl-btn-text').textContent = 'Joining...';
+  document.querySelector('.wl-btn').disabled = true;
 
-  // Simulate API call — replace with real Mailchimp/Formspree endpoint
-  setTimeout(()=>{
-    // Show success
-    document.getElementById('wl-form-wrap').style.display = 'none';
-    document.getElementById('wl-success').style.display = 'block';
-    document.getElementById('wl-ref-link').textContent = refLink;
+  try {
+    const response = await fetch('https://formspree.io/f/mnjrlkww', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email,
+        ref_source: ref,
+        ref_link: refLink,
+        _subject: `New ViceMap Scout — ${email}`
+      })
+    });
 
-    // Animate count up
-    const countEl = document.getElementById('wl-num');
-    let n = 2847;
-    const t = setInterval(()=>{
-      n++;
-      countEl.textContent = n.toLocaleString();
-      if(n >= 2848) clearInterval(t);
-    }, 50);
-  }, 1200);
+    if(response.ok){
+      // Show success
+      document.getElementById('hero-wl-wrap').style.display = 'none';
+      document.getElementById('wl-success').style.display = 'block';
+      document.getElementById('wl-ref-link').textContent = refLink;
+
+      // Animate count up
+      const countEl = document.getElementById('wl-num');
+      let n = 2847;
+      const t = setInterval(()=>{
+        n++;
+        countEl.textContent = n.toLocaleString();
+        if(n >= 2848) clearInterval(t);
+      }, 50);
+    } else {
+      document.getElementById('wl-btn-text').textContent = 'Try Again';
+      document.querySelector('.wl-btn').disabled = false;
+    }
+  } catch(err) {
+    document.getElementById('wl-btn-text').textContent = 'Try Again';
+    document.querySelector('.wl-btn').disabled = false;
+  }
 }
 
 function copyRef(){
